@@ -37,6 +37,7 @@ An AI-powered healthcare assistant that allows users to upload **medical images*
 
 ![127 0 0 1_7860_ (1)](https://github.com/user-attachments/assets/f95af149-314a-4215-943c-6c26ba8cc3b1)
 
+---
 
 ![127 0 0 1_7860_ (2)](https://github.com/user-attachments/assets/581457f9-58e7-428a-b279-caded03b1c8d)
 
