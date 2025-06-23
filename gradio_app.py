@@ -4,7 +4,6 @@ from brain import encode_image, analyze_image_with_query
 from voice import record_audio, transcribe_with_groq
 from doc_voice import text_to_speech_with_gtts, text_to_speech_with_elevenlabs
 
-# Enhanced TTS function with language support
 def text_to_speech_multilingual(input_text, output_filepath, language='en', use_elevenlabs=False):
     """
     Enhanced text-to-speech with Hindi and Marathi support
@@ -16,16 +15,15 @@ def text_to_speech_multilingual(input_text, output_filepath, language='en', use_
         use_elevenlabs: Whether to use ElevenLabs (True) or gTTS (False)
     """
     if use_elevenlabs:
-        # ElevenLabs supports multilingual voices but requires specific voice IDs
-        # You'll need to find Hindi/Marathi voice IDs from ElevenLabs
+       
         return text_to_speech_with_elevenlabs(input_text, output_filepath)
     else:
-        # Use gTTS with language support
+       
         from gtts import gTTS
         import subprocess
         import platform
         
-        # Language mapping
+       
         lang_codes = {
             'english': 'en',
             'hindi': 'hi', 
@@ -42,7 +40,7 @@ def text_to_speech_multilingual(input_text, output_filepath, language='en', use_
             )
             audioobj.save(output_filepath)
             
-            # Auto-play the audio (same as your existing code)
+          
             os_name = platform.system()
             if os_name == "Darwin":  # macOS
                 subprocess.run(['afplay', output_filepath])
@@ -63,7 +61,7 @@ def text_to_speech_multilingual(input_text, output_filepath, language='en', use_
             print(f"Error in multilingual TTS: {e}")
             return None
 
-# Enhanced system prompts for different languages
+
 system_prompts = {
     'english': """You have to act as a professional doctor, i know you are not but this is for learning purpose.
              What's in this image?. Do you find anything wrong with it medically?
@@ -97,13 +95,13 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
     try:
         user_query = ""
         
-        # Priority order: text input > recorded audio > uploaded audio
+        
         if text_input and text_input.strip():
-            # Use text input directly
+          
             user_query = text_input.strip()
             speech_to_text_output = f"Text input: {user_query}"
         elif recorded_audio:
-            # Use recorded audio
+           
             speech_to_text_output = transcribe_with_groq(
                 GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
                 audio_filepath=recorded_audio,
@@ -111,7 +109,7 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
             )
             user_query = speech_to_text_output
         elif uploaded_audio:
-            # Use uploaded audio file
+       
             speech_to_text_output = transcribe_with_groq(
                 GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
                 audio_filepath=uploaded_audio,
@@ -119,7 +117,7 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
             )
             user_query = speech_to_text_output
         else:
-            # No input provided
+           
             no_input_messages = {
                 'english': "Please provide a question via text, recorded audio, or uploaded audio file.",
                 'hindi': "कृपया टेक्स्ट, रिकॉर्ड की गई ऑडियो, या अपलोड की गई ऑडियो फ़ाइल के द्वारा प्रश्न दें।",
@@ -128,10 +126,9 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
             error_msg = no_input_messages.get(language_choice.lower(), no_input_messages['english'])
             return error_msg, error_msg, None
         
-        # Get appropriate system prompt based on language
-        system_prompt = system_prompts.get(language_choice.lower(), system_prompts['english'])
         
-        # Handle the image input
+        system_prompt = system_prompts.get(language_choice.lower(), system_prompts['english'])
+      
         if image_filepath:
             doctor_response = analyze_image_with_query(
                 query=system_prompt + " " + user_query, 
@@ -139,31 +136,31 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
                 model="meta-llama/llama-4-scout-17b-16e-instruct"
             )
         else:
-            # Provide language-appropriate "no image" message
+           
             no_image_messages = {
                 'english': "No image provided for me to analyze. Please describe your symptoms or upload a medical image.",
                 'hindi': "विश्लेषण के लिए कोई छवि प्रदान नहीं की गई। कृपया अपने लक्षणों का वर्णन करें या चिकित्सा छवि अपलोड करें।",
                 'marathi': "विश्लेषणासाठी कोणतीही प्रतिमा दिली नाही. कृपया तुमच्या लक्षणांचे वर्णन करा किंवा वैद्यकीय प्रतिमा अपलोड करा."
             }
             
-            # If there's a user query but no image, try to respond to the text query
+            
             if user_query:
-                # Create a text-only medical consultation prompt
+           
                 text_only_prompts = {
                     'english': f"As a doctor, based on the symptoms or question: '{user_query}', provide a brief medical consultation response. Keep it concise and suggest seeing a healthcare professional for proper diagnosis.",
                     'hindi': f"एक डॉक्टर के रूप में, लक्षणों या प्रश्न के आधार पर: '{user_query}', एक संक्षिप्त चिकित्सा परामर्श प्रतिक्रिया प्रदान करें। इसे संक्षिप्त रखें और उचित निदान के लिए स्वास्थ्य सेवा पेशेवर से मिलने का सुझाव दें।",
                     'marathi': f"डॉक्टर म्हणून, लक्षणे किंवा प्रश्नाच्या आधारे: '{user_query}', थोडक्यात वैद्यकीय सल्ला द्या. योग्य निदानासाठी आरोग्य सेवा व्यावसायिकाला भेटण्याचा सल्ला द्या."
                 }
                 
-                # For text-only queries, we can still provide some medical guidance
+                
                 doctor_response = text_only_prompts.get(language_choice.lower(), text_only_prompts['english'])
             else:
                 doctor_response = no_image_messages.get(language_choice.lower(), no_image_messages['english'])
         
-        # Generate audio response with language support
+      
         output_audio_path = f"doctor_response_{language_choice.lower()}.mp3"
         
-        # Choose TTS service
+       
         use_elevenlabs = (voice_service == "ElevenLabs (Premium)")
         
         text_to_speech_multilingual(
@@ -173,7 +170,7 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
             use_elevenlabs=use_elevenlabs
         )
         
-        # Return results
+       
         if os.path.exists(output_audio_path):
             return (speech_to_text_output if 'speech_to_text_output' in locals() else f"Text input: {user_query}"), doctor_response, output_audio_path
         else:
@@ -183,17 +180,17 @@ def process_inputs(recorded_audio, uploaded_audio, text_input, image_filepath, l
         error_msg = f"Error processing: {str(e)}"
         return error_msg, error_msg, None
 
-# Create the enhanced interface with multiple input options
+
 with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
     gr.Markdown("# 🩺 AI Doctor with Vision and Voice")
     gr.Markdown("Upload an image and ask a question via **text**, **voice recording**, or **audio file** to get medical analysis in English, Hindi, or Marathi")
     
     with gr.Row():
         with gr.Column(scale=1):
-            # Input section
+           
             gr.Markdown("### 📝 Ask Your Question")
             
-            # Text input
+           
             text_input = gr.Textbox(
                 label="Type your question here",
                 placeholder="e.g., What do you see in this image? or Describe the symptoms...",
@@ -202,7 +199,7 @@ with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
             
             gr.Markdown("**OR**")
             
-            # Audio inputs
+           
             recorded_audio = gr.Audio(
                 sources=["microphone"], 
                 type="filepath", 
@@ -217,13 +214,13 @@ with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
                 label="Upload audio file"
             )
             
-            # Image input
+            
             image_input = gr.Image(
                 type="filepath", 
                 label="Upload medical image (optional)"
             )
             
-            # Settings
+            
             gr.Markdown("### ⚙️ Settings")
             language_choice = gr.Dropdown(
                 choices=["English", "Hindi", "Marathi"], 
@@ -237,11 +234,11 @@ with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
                 label="Voice Service"
             )
             
-            # Submit button
+            
             submit_btn = gr.Button("🔍 Analyze", variant="primary", size="lg")
         
         with gr.Column(scale=1):
-            # Output section
+            
             gr.Markdown("### 📋 Results")
             
             input_text_output = gr.Textbox(
@@ -260,7 +257,7 @@ with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
                 type="filepath"
             )
     
-    # Examples section
+   
     gr.Markdown("### 💡 Example Questions")
     gr.Examples(
         examples=[
@@ -273,7 +270,7 @@ with gr.Blocks(title="AI Doctor with Vision and Voice") as iface:
         inputs=[text_input, recorded_audio, uploaded_audio]
     )
     
-    # Connect the function to the interface
+   
     submit_btn.click(
         fn=process_inputs,
         inputs=[

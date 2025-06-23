@@ -2,17 +2,16 @@ import os
 
 GROQ_API_KEY=os.environ.get("GROQ_API_KEY")
 
-#Step2: Convert image to required format
+
 import base64
 
 
-#image_path="acne.jpg"
 
 def encode_image(image_path):   
     image_file=open(image_path, "rb")
     return base64.b64encode(image_file.read()).decode('utf-8')
 
-#Step3: Setup Multimodal LLM 
+
 from groq import Groq
 
 query="Is there something wrong with my face?"
